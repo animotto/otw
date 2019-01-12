@@ -277,26 +277,29 @@ while True:
             print(" {}{} {}".format(login, k, v))
     elif cmd == "level":
         print("Current level {}".format(level))
-    elif cmd.startswith("level ") or cmd == "next" or cmd == "n":
-        if cmd.startswith("level"):
-            c = cmd.split(" ")
-            if len(c) != 2 or not c[1].isdigit(): continue
-            level = int(c[1])
-        elif cmd == "next" or cmd == "n":
-            if level > 34:
-                print("You have reached the maximum level")
-                continue
-            else:
-                level += 1
+    elif cmd.startswith("level "):
+        c = cmd.split(" ")
+        if len(c) != 2 or not c[1].isdigit(): continue
+        level = int(c[1])
+        
+        if level < 0 or level > 34:
+            print("Level must be between 0-34")
+            continue
 
         if level >= len(passwords):
             print("You should complete level {} first".format(len(passwords) - 1))
             continue
 
         print("[Level {}]".format(level))
-        if level >= 0 and level <= 34:
-            levels[level]()
+        levels[level]()
+    elif cmd == "next" or cmd == "n":
+        if level > 34:
+            print("You have reached the maximum level")
+            continue
         else:
-            print("Level must be between 1-34")
+            level += 1
+
+        print("[Level {}]".format(level))
+        levels[level]()
     else:
         print("Unknown command")
